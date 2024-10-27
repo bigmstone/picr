@@ -1,0 +1,17 @@
+[package]
+name = "picr"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+eframe = "0.29"
+egui = "0.29"
+rfd = "0.13"
+env_logger = { version = "0.10", default-features = false, features = [
+    "auto-color",
+    "humantime",
+] }
+fitrs = "0.5"
+image = "0.25"
+image-webp = "0.2"
+anyhow = "1.0"
