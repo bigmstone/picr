@@ -1,9 +1,9 @@
-use std::{error::Error, path::PathBuf};
+use std::{error::Error, ffi::OsStr, path::PathBuf};
 
 use {
     anyhow::{anyhow, Result},
-    egui::{Context, TextureHandle},
-    fitrs::Fits,
+    egui::{ColorImage, Context, TextureHandle},
+    fitrs::{Fits, HeaderValue},
     image::{
         imageops::{resize, FilterType},
         GrayImage,
@@ -17,15 +17,43 @@ pub struct File {
     fits: Fits,
     pub texture: Option<TextureHandle>,
     pub culled: bool,
+    pub metadata: Vec<(String, String)>,
 }
 
 impl File {
     pub fn new(path: PathBuf) -> Result<Self> {
+        let fits = fitrs::Fits::open(path.clone())?;
+        let mut metadata = vec![];
+
+        for hdu in fits.iter() {
+            for hv in hdu.iter() {
+                metadata.push((
+                    hv.0.clone(),
+                    header_display(hv.1.unwrap_or(&HeaderValue::CharacterString("".to_string()))),
+                ));
+            }
+        }
+
+        metadata.sort_by(|(k1, _), (k2, _)| k1.cmp(k2));
+
+        metadata.insert(
+            0,
+            (
+                "File Name".to_string(),
+                path.file_name()
+                    .unwrap_or(OsStr::new(""))
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
+            ),
+        );
+
         Ok(Self {
-            path: path.clone(),
-            fits: fitrs::Fits::open(path)?,
+            path,
+            fits,
             texture: None,
             culled: false,
+            metadata,
         })
     }
 
@@ -35,29 +63,43 @@ impl File {
         }
 
         for hdu in self.fits.iter() {
-            for hv in hdu.iter() {
-                println!("{:?}", hv);
-            }
             if let fitrs::FitsData::IntegersI32(fd) = hdu.read_data() {
                 let data: Vec<i32> = fd.data.iter().map(|d| d.unwrap_or(0)).collect();
                 let mut gimage =
                     create_grayscale_image(fd.shape[0] as u32, fd.shape[1] as u32, data);
                 imgproc::apply_stf_autostretch(&mut gimage);
-                println!("Here");
-                let width = 800;
-                let height = ((800. / fd.shape[0] as f32) * fd.shape[1] as f32) as u32;
+                let width = 1024 * 2;
+                let height = ((width as f32 / fd.shape[0] as f32) * fd.shape[1] as f32) as u32;
                 let image = resize(&gimage, width, height, FilterType::Gaussian);
                 self.texture = Some(ctx.load_texture(
                     "gray_image",
-                    egui::ColorImage::from_gray(
-                        [width as usize, height as usize],
-                        &image.into_vec(),
-                    ),
+                    ColorImage::from_gray([width as usize, height as usize], &image.into_vec()),
                     Default::default(),
                 ));
             }
         }
         Ok(())
+    }
+}
+
+fn header_display(header: &HeaderValue) -> String {
+    match header {
+        HeaderValue::CharacterString(c) => c.to_owned(),
+        HeaderValue::Logical(l) => {
+            format!("{}", l)
+        }
+        HeaderValue::IntegerNumber(i) => {
+            format!("{}", i)
+        }
+        HeaderValue::RealFloatingNumber(f) => {
+            format!("{}", f)
+        }
+        HeaderValue::ComplexIntegerNumber(r, i) => {
+            format!("{} {}i", r, i)
+        }
+        HeaderValue::ComplexFloatingNumber(r, i) => {
+            format!("{} {}i", r, i)
+        }
     }
 }
 
@@ -84,7 +126,6 @@ fn process_file(path: PathBuf) -> Result<File> {
     if path.is_file() {
         if let Some(ext) = path.extension() {
             if ext == "fits" {
-                println!("File type: {:?}", ext);
                 Ok(File::new(path)?)
             } else {
                 Err(anyhow!("Not fits extension"))
@@ -103,7 +144,12 @@ pub fn load(path: PathBuf) -> Result<Vec<File>, Box<dyn Error>> {
         for entry in path.read_dir()? {
             let file = entry?;
             let path = file.path();
-            fits.push(process_file(path)?);
+
+            if let Some(ext) = path.extension() {
+                if ext == "fits" {
+                    fits.push(process_file(path)?);
+                }
+            }
         }
     } else {
         fits.push(process_file(path)?);
