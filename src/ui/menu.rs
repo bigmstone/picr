@@ -17,6 +17,14 @@ pub fn menu(picr: &mut Picr, ctx: &Context) {
                     picr.show_config = true;
                     ui.close_menu();
                 }
+                if ui.button("Process").clicked() {
+                    picr.process.process(
+                        picr.files
+                            .iter()
+                            .map(|f| (f.path.clone(), f.culled))
+                            .collect(),
+                    );
+                }
             });
 
             ui.menu_button("Edit", |ui| {

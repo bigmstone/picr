@@ -17,6 +17,7 @@ struct Picr {
     picked_path: Option<std::path::PathBuf>,
     cursor: usize,
     pub show_config: bool,
+    process: process::Process,
 }
 
 impl eframe::App for Picr {
@@ -28,7 +29,7 @@ impl eframe::App for Picr {
         });
         ui::files::preview_files_being_dropped(ctx);
         ui::input::input(self, ctx);
-        ui::progress::progress(ctx, "Test", 0.3);
+        self.process.draw(ctx);
     }
 }
 
