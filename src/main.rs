@@ -7,7 +7,7 @@ mod ui;
 use file::{load, File};
 
 use {
-    eframe::egui,
+    eframe::{egui, icon_data::from_png_bytes},
     egui::{CentralPanel, Context, ViewportBuilder},
 };
 
@@ -35,10 +35,12 @@ impl eframe::App for Picr {
 
 fn main() -> eframe::Result {
     env_logger::init();
+    let icon = from_png_bytes(include_bytes!("../assets/icon.png")).expect("Couldn't Load Icon");
     let options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
             .with_inner_size([1024.0, 768.0])
-            .with_drag_and_drop(true),
+            .with_drag_and_drop(true)
+            .with_icon(icon),
         ..Default::default()
     };
     eframe::run_native("Picr", options, Box::new(|_cc| Ok(Box::<Picr>::default())))

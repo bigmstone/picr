@@ -3,6 +3,20 @@
 version = 3
 
 [[package]]
+name = "Picr"
+version = "2024.11.0"
+dependencies = [
+ "anyhow",
+ "eframe",
+ "egui",
+ "env_logger",
+ "fitrs",
+ "image",
+ "image-webp",
+ "rfd",
+]
+
+[[package]]
 name = "ab_glyph"
 version = "0.2.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2503,20 +2517,6 @@ name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
-
-[[package]]
-name = "picr"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "eframe",
- "egui",
- "env_logger",
- "fitrs",
- "image",
- "image-webp",
- "rfd",
-]
 
 [[package]]
 name = "pin-project"

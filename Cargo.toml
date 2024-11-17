@@ -1,7 +1,28 @@
 [package]
-name = "picr"
-version = "0.1.0"
+name = "Picr"
+version = "2024.11.0"
 edition = "2021"
+
+[package.metadata.bundle]
+identifier = "ip.mattstone.picr"
+icon = ["./assets/icon.png"]
+categories = ["Utility"]
+copyright = "Copyright (c) Matthew Stone 2024. All rights reserved."
+category = "Photography"
+short_description = "Tool for quickly and easily culling astrophotography photos."
+
+[package.metadata.bundle.macos]
+frameworks = []
+minimum-system-version = "10.13"
+document-types = [{name = "FITS File", extensions = ["fits", "fit"], handler = true}]
+
+[package.metadata.bundle.windows]
+console = false
+file-associations = [{description = "FITS File", extensions = ["fits", "fit"]}]
+
+[bundle.linux]
+categories = ["Science", "Utility"]
+mime-types = ["application/fits", "application/fits-image"]
 
 [dependencies]
 eframe = "0.29"
